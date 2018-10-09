@@ -1,9 +1,4 @@
-import sys, requests, json, os
-from requests import Session
-import re, types, traceback
-import Queue
-
-search_url = 'https://www.javbus.com/'
+SEARCH_URL = 'https://www.javbus.com/'
 
 def Start():
     #HTTP.ClearCache()
@@ -11,117 +6,110 @@ def Start():
     HTTP.Headers['User-agent'] = 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.2; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0)'
     HTTP.Headers['Accept-Encoding'] = 'utf-8'
 
-class Data18(Agent.Movies):
-    name = 'JAVDB'
+class JAVDB(Agent.Movies):
+    name = 'the JAVDB'
     languages = [Locale.Language.English]
     primary_provider = True
     accepts_from = None
-
     prev_search_provider = 0
 
-    data = {}
-
     def search(self, results, media, lang, manual=False):
+        Log.Debug("**************search: "+media.filename)
+        results.Append(MetadataSearchResult(id = media.filename, name  = media.filename, score = 100, lang = Locale.Language.English))
+
+    def update(self, metadata, media, lang, force=False):
+        Log.Debug("**************update: "+"IPX-128")
+        data = {}
         genre = {}
         star = {}
         downloads = {}
-        ID = media.name
-        Log.Debug("**************search: "+ID)
-        self.data["ID"] = ID.upper()
-        self.data["URL"] = self.search_url+ID
-        self.data["Samples"] = [""]
-        self.data["Studio"] =""
-        self.data["Label"]  =""
-        self.data["Director"] =""
-        self.data["Series"] =""
-        self.data["Genres"] =[""]
+        ID = "IPX-128"
+        data["ID"] = ID.upper()
+        data["URL"] = SEARCH_URL+ID
+        data["Samples"] = [""]
+        data["Studio"] =""
+        data["Label"]  =""
+        data["Director"] =""
+        data["Series"] =""
+        data["Genres"] =[""]
 
+        html = HTML.ElementFromURL(SEARCH_URL+ID, sleep=0)
 
-        html = HTML.ElementFromURL(search_url+ID, sleep=0)
-        info = html.find('div',"col-md-3 info")
+        data["Title"] =html.xpath('/html/body/div[5]/h3')[0].text
+        Log.Debug('*********Title: '+data["Title"])
+        data["Cover"] = html.xpath('/html/body/div[5]/div[1]/div[1]/a/@href')[0]
+        Log.Debug('*********Cover: '+data["Cover"])
+        data["Thumb"] = "https://pics.javbus.com/thumb/"+data["Cover"].split('/')[-1].split('_')[0]+".jpg"
+        Log.Debug('*********Thumb: '+data["Thumb"])
+        data["Date"] = html.xpath('/html/body/div[5]/div[1]/div[2]/p[2]/text()')[0]
+        Log.Debug('*********Date: '+data["Date"])
+        l = html.xpath('/html/body/div[5]/div[1]/div[2]/p[3]/text()')[0][:-2]
+        data["Duration"] = int(l)*60000
+        Log.Debug('*********Duration: '+str(data["Duration"]))
 
-        self.data["Title"] =html.find('h3').text[len(ID)+1:]
-        self.data["Cover"] = html.find('a',"bigImage")['href']
-        self.data["Thumb"] = "https://pics.javbus.com/thumb/"+data["Cover"].split('/')[-1].split('_')[0]+".jpg"
-        ########## Date ###########
-        d = info.find_all("p")[1].text[6:]
-        self.data["Date"] = d
-        # print("date: "+d)
-        ######### Length###########
-        l = info.find_all("p")[2].text[4:-2]
-        self.data["Duration"] = int(l)*60000
-        # print("Length: "+l)
-        texts = info.find_all("a")
+        texts = html.xpath('/html/body/div[5]/div[1]/div[2]//a')
         for text in texts:
-            link = text['href']
+            link = text.xpath('@href')[0]
             string = text.text
-            if link.find("studio") >=0:
-                self.data["Studio"] = string
-                self.data["StudioLink"] = link
-                # print("Studio: "+string+ " : "+link)
-            if link.find("label") >=0:
-                self.data["Label"] = string
-                self.data["LabelLink"] = link
-                # print("Label: "+string+ " : "+link)
-            if link.find("director") >=0:
-                self.data["Director"] = string
-                self.data["DirectorLink"] = link
-                # print("Director: "+string+ " : "+link)
-            if link.find("series") >=0:
-                self.data["Series"] = string
-                self.data["SeriesLink"] = link
-                # print("Series: "+string+ " : "+link)
-            if link.find("genre") >=0:
+            if "studio" in link:
+                data["Studio"] = string
+                data["StudioLink"] = link
+                Log.Debug('*********Studio: '+data["Studio"])
+            if "label" in link:
+                data["Label"] = string
+                data["LabelLink"] = link
+                Log.Debug('*********Label: '+data["Label"])
+            if "director" in link:
+                data["Director"] = string
+                data["DirectorLink"] = link
+                Log.Debug('*********Director: '+data["Director"])
+            if "series" in link:
+                data["Series"] = string
+                data["SeriesLink"] = link
+                Log.Debug('*********Series: '+data["Series"])
+            if "genre" in link:
                 genre[string] = link
-        self.data["Genres"] = genre
+                Log.Debug('*********Genre: '+string)
+        data["Genres"] = genre
 
-        st = html.find_all('a',"avatar-box")
+        st = html.xpath('//*[@id="avatar-waterfall"]/a')
         if st is not None and len(st) >0:
             for s in st:
-                link = s['href']
-                starhtml = HTML.ElementFromURL(link, sleep=0)
-                info = starhtml.find('div','avatar-box')
-                details = {}
-                details["Link"] = link
-                details["Avatar"] =info.find('img')["src"]
-                texts = info.find_all("p")
-                for text in texts:
-                    details[text.text.split(':')[0]] = text.text.split(':')[1]
-                name = s.text.strip()
-                star[name] = details
+                link = s.xpath('@href')[0]
+                name = s.text
+                avatar = s.xpath('/div/img@src')
+                star[name] = avatar
+                Log.Debug('*********Star: '+name)
+        data["Stars"] = star
 
-        self.data["Stars"] = star
-
-        samples = html.find_all('a',"sample-box")
+        samples = html.xpath('//*[@id="sample-waterfall"]/a')
         if samples is not None and len(samples) >0:
             for s in samples:
-                self.data["Samples"].append(s['href'])
-        results.Append(MetadataSearchResult(id = media.name, name  = media.name, score = '100', lang = Locale.Language.English))
+                data["Samples"].append(s.xpath['@href'][0])
+                Log.Debug('*********Smaple: '+s.xpath['@href'][0])
 
-    def update(self, metadata, media, lang, force=False):
-        Log.Debug("**************update: "+ID)
-        metadata.title = self.data["Title"]
-        metadata.genres = self.data["Genres"]
-        metadata.tags = self.data["Genres"]
-        metadata.collections = self.data["Series"]
-        metadata.duration = self.data["Duration"]
+        metadata.title = "Title Test"
+        metadata.genres = data["Genres"]
+        metadata.tags = data["Genres"]
+        metadata.collections = data["Series"]
+        metadata.duration = data["Duration"]
         metadata.rating = 10.0
-        metadata.original_title = self.data["Title"]
+        metadata.original_title = data["Title"]
         metadata.year = 2018
-        metadata.originally_available_at = Datetime.ParseDate(self.data["Date"]).date()
-        metadata.studio = self.data["Studio"]
-        metadata.tagline = self.data["URL"]
-        metadata.summary = self.data["Title"]
+        metadata.originally_available_at = Datetime.ParseDate(data["Date"]).date()
+        metadata.studio = data["Studio"]
+        metadata.tagline = data["URL"]
+        metadata.summary = data["Title"]
         metadata.trivia = "trivia...."
         metadata.content_rating = "R18"
         metadata.content_rating_age = "18"
         metadata.writers = ["writer"]
-        metadata.directors = [self.data["Director"]]
-        metadata.producers = [self.data["Label"]]
+        metadata.directors = [data["Director"]]
+        metadata.producers = [data["Label"]]
         metadata.countries = ["Japan"]
         #meta_role = metadata.roles.new()
         #meta_role.role = "rolerole"
         #meta_role.name = "rolename"
         #meta_role.photo = "https://pics.javbus.com/actress/ntx_a.jpg"
-        metadata.posters = Proxy.Preview(HTTP.Request(self.data["Cover"]).content)
+        metadata.posters[data["Cover"]] = Proxy.Preview(HTTP.Request("https://pics.javbus.com/cover/66oh_b.jpg").content)
         #metadata.art = Proxy.Preview(HTTP.Request(self.data["Samples"][0]).content)
