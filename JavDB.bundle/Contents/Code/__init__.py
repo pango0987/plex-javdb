@@ -17,13 +17,12 @@ class JAVDB(Agent.Movies):
         results.Append(MetadataSearchResult(id = media.filename, name  = media.filename, score = 100, lang = Locale.Language.English))
 
     def update(self, metadata, media, lang, force=False):
-        Log.Debug("**************mediafilename: "+media.filename)
-        Log.Debug("**************medianame : "+media.name)
+        Log.Debug("**************mediafilename: "+media.items[0].parts[0].file)
         data = {}
         genre = {}
         star = {}
         downloads = {}
-        ID = media.name
+        ID = media.items[0].parts[0].file.split('.')[0]
         data["ID"] = ID.upper()
         data["URL"] = SEARCH_URL+ID
         data["Samples"] = [""]
