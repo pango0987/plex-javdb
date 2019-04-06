@@ -77,7 +77,6 @@ class JAVDB(Agent.Movies):
             for s in st:
                 link = s.xpath('@href')[0]
                 name = s.text
-                Log.Debug('*********s: '+s)
 #                 avatar = s.xpath('/div/img@src')
 #                 star[name] = avatar
 #                 Log.Debug('*********Star: '+name)
