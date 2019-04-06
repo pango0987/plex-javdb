@@ -22,7 +22,7 @@ class JAVDB(Agent.Movies):
         genre = {}
         star = {}
         downloads = {}
-        ID = media.items[0].parts[0].file.split('.')[0]
+        ID = media.items[0].parts[0].file.split('/')[-1].split('.')[0]
         data["ID"] = ID.upper()
         data["URL"] = SEARCH_URL+ID
         data["Samples"] = [""]
