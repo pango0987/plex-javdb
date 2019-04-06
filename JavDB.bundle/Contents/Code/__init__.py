@@ -89,8 +89,8 @@ class JAVDB(Agent.Movies):
 #                 Log.Debug('*********Smaple: '+s.xpath['@href'][0])
 
         metadata.title = "Title Test"
-        metadata.genres = data["Genres"]
-        metadata.tags = data["Genres"]
+#         metadata.genres = data["Genres"]
+#         metadata.tags = data["Genres"]
         metadata.collections = data["Series"]
         metadata.duration = data["Duration"]
         metadata.rating = 10.0
