@@ -17,7 +17,7 @@ class JAVDB(Agent.Movies):
         results.Append(MetadataSearchResult(id = media.filename, name  = media.filename, score = 100, lang = Locale.Language.English))
 
     def update(self, metadata, media, lang, force=False):
-        Log.Debug("**************update: "+media)
+        Log.Debug("**************update: "+metadata.id)
         data = {}
         genre = {}
         star = {}
