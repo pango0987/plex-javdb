@@ -77,10 +77,11 @@ class JAVDB(Agent.Movies):
             for s in st:
                 link = s.xpath('@href')[0]
                 name = s.text
-                avatar = s.xpath('/div/img@src')
-                star[name] = avatar
-                Log.Debug('*********Star: '+name)
-        data["Stars"] = star
+                Log.Debug('*********s: '+s)
+#                 avatar = s.xpath('/div/img@src')
+#                 star[name] = avatar
+#                 Log.Debug('*********Star: '+name)
+#         data["Stars"] = star
 
         samples = html.xpath('//*[@id="sample-waterfall"]/a')
         if samples is not None and len(samples) >0:
