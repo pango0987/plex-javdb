@@ -82,11 +82,11 @@ class JAVDB(Agent.Movies):
 #                 Log.Debug('*********Star: '+name)
 #         data["Stars"] = star
 
-        samples = html.xpath('//*[@id="sample-waterfall"]/a')
-        if samples is not None and len(samples) >0:
-            for s in samples:
-                data["Samples"].append(s.xpath['@href'][0])
-                Log.Debug('*********Smaple: '+s.xpath['@href'][0])
+#         samples = html.xpath('//*[@id="sample-waterfall"]/a')
+#         if samples is not None and len(samples) >0:
+#             for s in samples:
+#                 data["Samples"].append(s.xpath['@href'][0])
+#                 Log.Debug('*********Smaple: '+s.xpath['@href'][0])
 
         metadata.title = "Title Test"
         metadata.genres = data["Genres"]
